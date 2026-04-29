@@ -1,0 +1,27 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/community_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: your_password   # TODO: replace with your MySQL password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update          # auto-creates/updates schema on startup
+    show-sql: true              # logs SQL queries for debugging
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+# JWT configuration
+jwt:
+  secret: community-property-management-secret-key-change-in-production
+  expiration: 86400000          # 24 hours in milliseconds
+
+# CORS (adjust origin for production)
+cors:
+  allowed-origins: http://localhost:3000
