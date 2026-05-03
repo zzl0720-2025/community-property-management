@@ -1,25 +1,12 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  Alert,
-  Button,
-  Card,
-  Divider,
-  Form,
-  Input,
-  Space,
-  Typography,
-  message,
-} from "antd";
-import { LockOutlined, MailOutlined, PhoneOutlined, UserOutlined } from "@ant-design/icons";
-import { login, register } from "../services/api";
+import { Alert, Button, Card, Form, Input, Space, Typography } from "antd";
+import { LockOutlined, MailOutlined } from "@ant-design/icons";
+import { login } from "../services/api";
 
-function LoginPage({ mode, onLoginSuccess }) {
-  const [registerForm] = Form.useForm();
+function LoginPage({ onLoginSuccess }) {
   const [submitting, setSubmitting] = useState(false);
-  const [registering, setRegistering] = useState(false);
   const [error, setError] = useState("");
-  const isAdminMode = mode === "admin";
 
   const handleLogin = async (values) => {
     setSubmitting(true);
@@ -35,27 +22,12 @@ function LoginPage({ mode, onLoginSuccess }) {
 
       onLoginSuccess({
         token,
-        accountType: inferAccountType(data, mode),
+        accountType: inferAccountType(data),
       });
     } catch (loginError) {
       setError(loginError.response?.data?.message || "Login failed");
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleRegister = async (values) => {
-    setRegistering(true);
-    setError("");
-
-    try {
-      await register(values);
-      registerForm.resetFields();
-      message.success("Registration successful. You can sign in now.");
-    } catch (registerError) {
-      setError(registerError.response?.data?.message || "Registration failed");
-    } finally {
-      setRegistering(false);
     }
   };
 
@@ -65,19 +37,13 @@ function LoginPage({ mode, onLoginSuccess }) {
         <Space direction="vertical" size={24} style={{ display: "flex" }}>
           <div>
             <Typography.Title level={2} style={{ marginBottom: 8 }}>
-              {isAdminMode ? "Admin Sign In" : "Resident Sign In"}
+              Sign In
             </Typography.Title>
             <Typography.Text type="secondary">
-              {isAdminMode
-                ? "Sign in to manage community operations."
-                : "Sign in to access your community dashboard."}
+              Residents and admins sign in here. Admin access is determined by
+              your account role after login.
             </Typography.Text>
           </div>
-
-          <Space size={12} wrap>
-            <Link to="/login/user">Resident Login</Link>
-            <Link to="/login/admin">Admin Login</Link>
-          </Space>
 
           {error ? <Alert message={error} type="error" showIcon /> : null}
 
@@ -101,69 +67,28 @@ function LoginPage({ mode, onLoginSuccess }) {
             </Form.Item>
             <Form.Item style={{ marginBottom: 0 }}>
               <Button type="primary" htmlType="submit" loading={submitting} block>
-                {isAdminMode ? "Sign In as Admin" : "Sign In"}
+                Sign In
               </Button>
             </Form.Item>
           </Form>
 
-          {!isAdminMode ? (
-            <>
-              <Divider style={{ margin: 0 }}>Create Resident Account</Divider>
-              <Form
-                form={registerForm}
-                layout="vertical"
-                onFinish={handleRegister}
-                autoComplete="off"
-              >
-                <Form.Item
-                  label="Full Name"
-                  name="fullName"
-                  rules={[{ required: true, message: "Please enter your full name." }]}
-                >
-                  <Input prefix={<UserOutlined />} placeholder="Full Name" />
-                </Form.Item>
-                <Form.Item
-                  label="Email"
-                  name="email"
-                  rules={[
-                    { required: true, message: "Please enter your email." },
-                    { type: "email", message: "Please enter a valid email." },
-                  ]}
-                >
-                  <Input prefix={<MailOutlined />} placeholder="name@example.com" />
-                </Form.Item>
-                <Form.Item
-                  label="Password"
-                  name="password"
-                  rules={[{ required: true, message: "Please enter your password." }]}
-                >
-                  <Input.Password prefix={<LockOutlined />} placeholder="Password" />
-                </Form.Item>
-                <Form.Item label="Phone" name="phone">
-                  <Input prefix={<PhoneOutlined />} placeholder="Optional phone number" />
-                </Form.Item>
-                <Form.Item style={{ marginBottom: 0 }}>
-                  <Button htmlType="submit" loading={registering} block>
-                    Register Resident Account
-                  </Button>
-                </Form.Item>
-              </Form>
-            </>
-          ) : null}
+          <Typography.Text type="secondary">
+            No account? <Link to="/register">Create a resident account</Link>
+          </Typography.Text>
         </Space>
       </Card>
     </div>
   );
 }
 
-function inferAccountType(loginData, fallbackMode) {
+function inferAccountType(loginData) {
   return (
     normalizeAccountType(loginData?.role) ||
     normalizeAccountType(loginData?.roles) ||
     normalizeAccountType(loginData?.authorities) ||
     normalizeAccountType(decodeJwtPayload(loginData?.token)?.role) ||
     normalizeAccountType(decodeJwtPayload(loginData?.token)?.roles) ||
-    fallbackMode
+    "user"
   );
 }
 

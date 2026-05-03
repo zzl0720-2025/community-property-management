@@ -1,5 +1,5 @@
-import React from 'react';
-import { Card, Typography } from 'antd';
+import React from "react";
+import { Card, Typography } from "antd";
 
 function RoomReserving() {
   return (
@@ -16,11 +16,11 @@ function RoomReserving() {
 
 const styles = {
   page: {
-    maxWidth: '960px',
-    margin: '0 auto',
+    maxWidth: "960px",
+    margin: "0 auto",
   },
   card: {
-    boxShadow: '0 12px 32px rgba(15, 23, 42, 0.08)',
+    boxShadow: "0 12px 32px rgba(15, 23, 42, 0.08)",
   },
 };
 

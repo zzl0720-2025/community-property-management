@@ -10,6 +10,7 @@ import {
 import { Button, Layout, Space, Typography } from "antd";
 import { LogoutOutlined, MenuOutlined } from "@ant-design/icons";
 import LoginPage from "./components/LoginPage";
+import RegisterPage from "./components/RegisterPage";
 import Sidebar from "./components/Sidebar";
 import Admin from "./pages/Admin";
 import Dashboard from "./pages/Dashboard";
@@ -18,7 +19,7 @@ import Payment from "./pages/Payment";
 import RoomReserving from "./pages/RoomReserving";
 
 const { Header, Content } = Layout;
-const LOGIN_ROUTE = "/login/user";
+const LOGIN_ROUTE = "/login";
 
 function App() {
   return (
@@ -36,7 +37,8 @@ function AppContent() {
   );
   const location = useLocation();
   const navigate = useNavigate();
-  const isLoginRoute = location.pathname.startsWith("/login");
+  const isAuthRoute =
+    location.pathname === "/login" || location.pathname === "/register";
 
   useEffect(() => {
     setDrawerOpen(false);
@@ -90,29 +92,24 @@ function AppContent() {
       ) : null}
 
       <Layout style={styles.contentLayout}>
-        <Content style={isLoginRoute ? styles.authContent : styles.content}>
+        <Content style={isAuthRoute ? styles.authContent : styles.content}>
           <Routes>
-            <Route path="/login" element={<Navigate to={LOGIN_ROUTE} replace />} />
             <Route
-              path="/login/user"
+              path="/login"
               element={
                 authed ? (
                   <Navigate to={accountType === "admin" ? "/admin" : "/"} replace />
                 ) : (
-                  <LoginPage mode="user" onLoginSuccess={handleLoginSuccess} />
+                  <LoginPage onLoginSuccess={handleLoginSuccess} />
                 )
               }
             />
             <Route
-              path="/login/admin"
-              element={
-                authed ? (
-                  <Navigate to={accountType === "admin" ? "/admin" : "/"} replace />
-                ) : (
-                  <LoginPage mode="admin" onLoginSuccess={handleLoginSuccess} />
-                )
-              }
+              path="/register"
+              element={authed ? <Navigate to="/" replace /> : <RegisterPage />}
             />
+            <Route path="/login/user" element={<Navigate to="/login" replace />} />
+            <Route path="/login/admin" element={<Navigate to="/login" replace />} />
             <Route
               path="/"
               element={
