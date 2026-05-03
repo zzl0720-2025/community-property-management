@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Alert, Card, Empty, List, Space, Spin, Typography } from 'antd';
 import { getAnnouncements } from '../services/api';
 
 /**
@@ -17,39 +18,86 @@ function Dashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <p style={styles.center}>Loading...</p>;
-  if (error)   return <p style={{ ...styles.center, color: 'red' }}>{error}</p>;
+  if (loading) {
+    return (
+      <div style={styles.center}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={styles.container}>
+        <Alert message={error} type="error" showIcon />
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>
-      <h2>Community Dashboard</h2>
-      <p style={styles.subtitle}>Latest Announcements</p>
+      <Space direction="vertical" size={24} style={{ display: 'flex' }}>
+        <div>
+          <Typography.Title level={2} style={{ marginBottom: 8 }}>
+            Community Dashboard
+          </Typography.Title>
+          <Typography.Text type="secondary">
+            Latest announcements
+          </Typography.Text>
+        </div>
 
-      {announcements.length === 0 ? (
-        <p>No announcements yet.</p>
-      ) : (
-        announcements.map((a) => (
-          <div key={a.id} style={styles.card}>
-            <h3 style={styles.cardTitle}>{a.title}</h3>
-            <p style={styles.cardBody}>{a.content}</p>
-            <small style={styles.meta}>
-              Posted by {a.postedBy?.fullName} &bull; {new Date(a.postedAt).toLocaleDateString()}
-            </small>
-          </div>
-        ))
-      )}
+        {announcements.length === 0 ? (
+          <Card bordered={false}>
+            <Empty description="No announcements yet." />
+          </Card>
+        ) : (
+          <List
+            dataSource={announcements}
+            split={false}
+            renderItem={(announcement) => (
+              <List.Item style={{ padding: 0, marginBottom: 16 }}>
+                <Card title={announcement.title} bordered={false} style={styles.card}>
+                  <Typography.Paragraph style={styles.cardBody}>
+                    {announcement.content}
+                  </Typography.Paragraph>
+                  <Typography.Text type="secondary">
+                    Posted by {announcement.postedBy?.fullName || 'Community Team'} {'\u2022'} {formatDate(announcement.postedAt)}
+                  </Typography.Text>
+                </Card>
+              </List.Item>
+            )}
+          />
+        )}
+      </Space>
     </div>
   );
 }
 
+function formatDate(value) {
+  if (!value) {
+    return 'Date unavailable';
+  }
+
+  return new Date(value).toLocaleDateString();
+}
+
 const styles = {
-  container: { maxWidth: '800px', margin: '40px auto', padding: '0 16px' },
-  subtitle:  { color: '#666', marginBottom: '24px' },
-  card:      { border: '1px solid #e0e0e0', borderRadius: '8px', padding: '20px', marginBottom: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' },
-  cardTitle: { margin: '0 0 8px', fontSize: '1.1rem' },
-  cardBody:  { margin: '0 0 12px', color: '#333' },
-  meta:      { color: '#999', fontSize: '0.85rem' },
-  center:    { textAlign: 'center', marginTop: '60px' },
+  container: {
+    maxWidth: '960px',
+    margin: '0 auto',
+  },
+  card: {
+    boxShadow: '0 12px 32px rgba(15, 23, 42, 0.08)',
+  },
+  cardBody: {
+    marginBottom: 16,
+  },
+  center: {
+    minHeight: '50vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 };
 
 export default Dashboard;

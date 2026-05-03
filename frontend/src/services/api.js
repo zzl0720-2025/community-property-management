@@ -3,7 +3,7 @@ import axios from 'axios';
 /**
  * api.js — central Axios instance.
  * Automatically attaches the JWT Bearer token to every request
- * and redirects to /login on 401 Unauthorized.
+ * and redirects to /login/user on 401 Unauthorized.
  */
 
 const api = axios.create({
@@ -20,13 +20,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401: clear token and redirect to login
+// Handle 401: clear auth state and redirect to login
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      localStorage.removeItem('accountType');
+      window.location.href = '/login/user';
     }
     return Promise.reject(error);
   }
