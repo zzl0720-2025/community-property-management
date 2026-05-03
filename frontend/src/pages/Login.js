@@ -1,26 +1,29 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { login } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { login as loginApi } from '../services/api';
 
-/**
- * Login page — calls POST /api/auth/login, stores JWT in localStorage.
- */
 function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     try {
-      const { data } = await login(form);
-      localStorage.setItem('token', data.token);
+      const { data } = await loginApi(form);
+      login(data);
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -29,9 +32,17 @@ function Login() {
       <form onSubmit={handleSubmit} style={styles.form}>
         <h2>Login</h2>
         {error && <p style={styles.error}>{error}</p>}
-        <input name="email"    type="email"    placeholder="Email"    value={form.email}    onChange={handleChange} style={styles.input} required />
-        <input name="password" type="password" placeholder="Password" value={form.password} onChange={handleChange} style={styles.input} required />
-        <button type="submit" style={styles.button}>Login</button>
+        <input
+          name="email" type="email" placeholder="Email"
+          value={form.email} onChange={handleChange} style={styles.input} required
+        />
+        <input
+          name="password" type="password" placeholder="Password"
+          value={form.password} onChange={handleChange} style={styles.input} required
+        />
+        <button type="submit" style={styles.button} disabled={loading}>
+          {loading ? 'Logging in...' : 'Login'}
+        </button>
         <p>No account? <Link to="/register">Register</Link></p>
       </form>
     </div>

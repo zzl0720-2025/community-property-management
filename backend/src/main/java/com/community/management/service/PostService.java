@@ -2,17 +2,43 @@ package com.community.management.service;
 
 import com.community.management.entity.Comment;
 import com.community.management.entity.Post;
+import com.community.management.exception.ResourceNotFoundException;
+import com.community.management.repository.CommentRepository;
+import com.community.management.repository.PostRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 
-public interface PostService {
+@Service
+@RequiredArgsConstructor
+public class PostService {
 
-    List<Post> getAllPosts();
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
 
-    Post getById(Long id);
+    public List<Post> getAllPosts() {
+        return postRepository.findAllByOrderByCreatedAtDesc();
+    }
 
-    Post create(Post post);
+    public Post getById(Long id) {
+        return postRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Post not found: " + id));
+    }
 
-    Comment addComment(Long postId, Comment comment);
+    public Post create(Post post) {
+        // TODO: set author from security context
+        return postRepository.save(post);
+    }
 
-    void deletePost(Long id);
+    public Comment addComment(Long postId, Comment comment) {
+        Post post = getById(postId);
+        comment.setPost(post);
+        // TODO: set author from security context
+        return commentRepository.save(comment);
+    }
+
+    public void deletePost(Long id) {
+        postRepository.deleteById(id);
+    }
 }

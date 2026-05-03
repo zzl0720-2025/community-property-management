@@ -1,26 +1,29 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { register } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { register as registerApi } from '../services/api';
 
-/**
- * Register page — calls POST /api/auth/register, stores JWT and redirects.
- */
 function Register() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [form, setForm] = useState({ fullName: '', email: '', password: '', phone: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     try {
-      const { data } = await register(form);
-      localStorage.setItem('token', data.token);
+      const { data } = await registerApi(form);
+      login(data);
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -29,11 +32,25 @@ function Register() {
       <form onSubmit={handleSubmit} style={styles.form}>
         <h2>Register</h2>
         {error && <p style={styles.error}>{error}</p>}
-        <input name="fullName" type="text"     placeholder="Full Name" value={form.fullName} onChange={handleChange} style={styles.input} required />
-        <input name="email"    type="email"    placeholder="Email"     value={form.email}    onChange={handleChange} style={styles.input} required />
-        <input name="password" type="password" placeholder="Password"  value={form.password} onChange={handleChange} style={styles.input} required />
-        <input name="phone"    type="tel"      placeholder="Phone"     value={form.phone}    onChange={handleChange} style={styles.input} />
-        <button type="submit" style={styles.button}>Create Account</button>
+        <input
+          name="fullName" type="text" placeholder="Full Name"
+          value={form.fullName} onChange={handleChange} style={styles.input} required
+        />
+        <input
+          name="email" type="email" placeholder="Email"
+          value={form.email} onChange={handleChange} style={styles.input} required
+        />
+        <input
+          name="password" type="password" placeholder="Password (min 6 chars)"
+          value={form.password} onChange={handleChange} style={styles.input} required minLength={6}
+        />
+        <input
+          name="phone" type="tel" placeholder="Phone (optional)"
+          value={form.phone} onChange={handleChange} style={styles.input}
+        />
+        <button type="submit" style={styles.button} disabled={loading}>
+          {loading ? 'Creating account...' : 'Create Account'}
+        </button>
         <p>Already have an account? <Link to="/login">Login</Link></p>
       </form>
     </div>

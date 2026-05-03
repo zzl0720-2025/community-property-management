@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hibernate.annotations.UpdateTimestamp;
+
 /**
  * User entity — represents any system user (admin, resident, staff).
  * Owns the join table with Role.
@@ -36,6 +38,9 @@ public class User {
 
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
     // A user can have multiple roles (e.g. ADMIN + RESIDENT)
     @ManyToMany(fetch = FetchType.EAGER)
