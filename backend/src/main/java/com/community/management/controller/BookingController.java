@@ -1,10 +1,19 @@
 package com.community.management.controller;
 
-import com.community.management.entity.Booking;
+import com.community.management.dto.booking.BookingRequest;
+import com.community.management.dto.booking.BookingResponse;
+import com.community.management.dto.booking.BookingStatusUpdateRequest;
+import com.community.management.entity.User;
+import com.community.management.exception.ResourceNotFoundException;
+import com.community.management.repository.UserRepository;
 import com.community.management.service.BookingService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,33 +33,50 @@ import java.util.List;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final UserRepository userRepository;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<Booking>> getAll() {
-        return ResponseEntity.ok(bookingService.getAll());
+    public ResponseEntity<List<BookingResponse>> getAllBookings() {
+        return ResponseEntity.ok(bookingService.getAllBookings());
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Booking>> getByUser(@PathVariable Long userId) {
-        return ResponseEntity.ok(bookingService.getByUser(userId));
+    public ResponseEntity<List<BookingResponse>> getUserBookings(@PathVariable Long userId) {
+        return ResponseEntity.ok(bookingService.getUserBookings(userId));
     }
 
     @PostMapping
-    public ResponseEntity<Booking> create(@RequestBody Booking booking) {
-        return ResponseEntity.ok(bookingService.create(booking));
+    public ResponseEntity<BookingResponse> createBooking(
+            @Valid @RequestBody BookingRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = resolveUserId(userDetails);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(bookingService.createBooking(request, userId));
     }
 
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Booking> updateStatus(@PathVariable Long id,
-                                                @RequestParam Booking.BookingStatus status) {
-        return ResponseEntity.ok(bookingService.updateStatus(id, status));
+    public ResponseEntity<BookingResponse> updateStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody BookingStatusUpdateRequest request) {
+        return ResponseEntity.ok(bookingService.updateBookingStatus(id, request.getStatus()));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> cancel(@PathVariable Long id) {
-        bookingService.cancel(id);
+    public ResponseEntity<Void> cancelBooking(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        Long userId = isAdmin ? null : resolveUserId(userDetails);
+        bookingService.cancelBooking(id, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    private Long resolveUserId(UserDetails userDetails) {
+        return userRepository.findByEmail(userDetails.getUsername())
+                .map(User::getId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userDetails.getUsername()));
     }
 }

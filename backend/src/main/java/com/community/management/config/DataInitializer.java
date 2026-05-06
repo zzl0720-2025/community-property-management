@@ -1,7 +1,9 @@
 package com.community.management.config;
 
+import com.community.management.entity.CommonRoom;
 import com.community.management.entity.Role;
 import com.community.management.entity.User;
+import com.community.management.repository.CommonRoomRepository;
 import com.community.management.repository.RoleRepository;
 import com.community.management.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +26,15 @@ public class DataInitializer implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CommonRoomRepository commonRoomRepository;
 
     @Override
     public void run(String... args) {
         seedRole("ROLE_ADMIN");
         seedRole("ROLE_RESIDENT");
         seedRole("ROLE_STAFF");
+
+        seedRooms();
 
         if (!userRepository.existsByEmail("admin@community.com")) {
             Role adminRole = roleRepository.findByName("ROLE_ADMIN").orElseThrow();
@@ -49,5 +54,22 @@ public class DataInitializer implements CommandLineRunner {
             role.setName(name);
             roleRepository.save(role);
         }
+    }
+
+    private void seedRooms() {
+        if (commonRoomRepository.count() == 0) {
+            saveRoom("Community Hall", "Large hall for community events and gatherings", 100);
+            saveRoom("Meeting Room A", "Small meeting room for residents and committees", 20);
+            saveRoom("Gym", "Fitness room with exercise equipment", 15);
+            log.info("Sample common rooms seeded");
+        }
+    }
+
+    private void saveRoom(String name, String description, int capacity) {
+        CommonRoom room = new CommonRoom();
+        room.setName(name);
+        room.setDescription(description);
+        room.setCapacity(capacity);
+        commonRoomRepository.save(room);
     }
 }

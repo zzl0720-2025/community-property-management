@@ -11,6 +11,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
 
+import com.community.management.exception.BookingConflictException;
+import com.community.management.exception.InvalidBookingException;
+import com.community.management.exception.UnauthorizedActionException;
+
 /**
  * GlobalExceptionHandler — converts exceptions to consistent JSON error responses.
  * Handles: validation errors, not-found, access denied, and generic errors.
@@ -43,6 +47,24 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ApiResponse(false, errors));
+    }
+
+    @ExceptionHandler(InvalidBookingException.class)
+    public ResponseEntity<ApiResponse> handleInvalidBooking(InvalidBookingException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse(false, ex.getMessage()));
+    }
+
+    @ExceptionHandler(BookingConflictException.class)
+    public ResponseEntity<ApiResponse> handleBookingConflict(BookingConflictException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ApiResponse(false, ex.getMessage()));
+    }
+
+    @ExceptionHandler(UnauthorizedActionException.class)
+    public ResponseEntity<ApiResponse> handleUnauthorizedAction(UnauthorizedActionException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ApiResponse(false, ex.getMessage()));
     }
 
     @ExceptionHandler(RuntimeException.class)
