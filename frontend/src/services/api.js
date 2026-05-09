@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 /**
- * api.js — central Axios instance.
+ * api.js: central Axios instance.
  * Automatically attaches the JWT Bearer token to every request
  * and redirects to /login on 401 Unauthorized.
  */
@@ -39,6 +39,12 @@ export const register = (data) => api.post('/auth/register', data);
 
 // --- Announcements ---
 export const getAnnouncements = () => api.get('/announcements');
+export const createAnnouncement = (data) => api.post('/announcements', data);
+export const deleteAnnouncement = (id) => api.delete(`/announcements/${id}`);
+
+// --- Users ---
+export const getUsers = () => api.get('/users');
+export const deleteUser = (id) => api.delete(`/users/${id}`);
 
 // --- Posts ---
 export const getPosts = () => api.get('/posts');
@@ -47,15 +53,20 @@ export const createPost = (data) => api.post('/posts', data);
 export const addComment = (postId, data) => api.post(`/posts/${postId}/comments`, data);
 
 // --- Bookings ---
+export const getAllBookings = () => api.get('/bookings');
 export const getMyBookings = (userId) => api.get(`/bookings/user/${userId}`);
 export const createBooking = (data) => api.post('/bookings', data);
+export const updateBookingStatus = (id, status) => api.patch(`/bookings/${id}/status`, { status });
 
 // --- Maintenance ---
+export const getAllMaintenanceRequests = () => api.get('/maintenance');
 export const getMyRequests = (userId) => api.get(`/maintenance/user/${userId}`);
 export const createRequest = (data) => api.post('/maintenance', data);
+export const updateMaintenanceStatus = (id, status) => api.patch(`/maintenance/${id}/status`, { status });
 
 // --- Payments ---
 export const getMyPayments = (userId) => api.get(`/payments/user/${userId}`);
+export const createPayment = (data) => api.post('/payments', data);
 export const markAsPaid = (id) => api.patch(`/payments/${id}/pay`);
 
 export default api;

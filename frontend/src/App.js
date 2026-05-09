@@ -8,14 +8,17 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { Button, Layout, Space, Typography } from "antd";
-import { LogoutOutlined, MenuOutlined } from "@ant-design/icons";
+import { BellOutlined, LogoutOutlined, MenuOutlined } from "@ant-design/icons";
 import LoginPage from "./components/LoginPage";
 import RegisterPage from "./components/RegisterPage";
 import Sidebar from "./components/Sidebar";
 import Admin from "./pages/Admin";
 import Dashboard from "./pages/Dashboard";
 import Discussion from "./pages/Discussion";
+import Maintenance from "./pages/Maintenance";
+import Notifications from "./pages/Notifications";
 import Payment from "./pages/Payment";
+import Profile from "./pages/Profile";
 import RoomReserving from "./pages/RoomReserving";
 
 const { Header, Content } = Layout;
@@ -77,9 +80,18 @@ function AppContent() {
           </Typography.Title>
         </Space>
         {authed ? (
-          <Button type="text" icon={<LogoutOutlined />} onClick={handleLogout}>
-            Log Out
-          </Button>
+          <Space size={8}>
+            <Button
+              type="text"
+              shape="circle"
+              icon={<BellOutlined />}
+              onClick={() => navigate("/notifications")}
+              aria-label="Notifications"
+            />
+            <Button type="text" icon={<LogoutOutlined />} onClick={handleLogout}>
+              Log Out
+            </Button>
+          </Space>
         ) : null}
       </Header>
 
@@ -131,6 +143,30 @@ function AppContent() {
               element={
                 <ProtectedRoute authed={authed}>
                   <Payment />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/maintenance"
+              element={
+                <ProtectedRoute authed={authed}>
+                  <Maintenance />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute authed={authed}>
+                  <Notifications />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute authed={authed}>
+                  <Profile />
                 </ProtectedRoute>
               }
             />

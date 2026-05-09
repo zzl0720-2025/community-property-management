@@ -6,6 +6,8 @@ import {
   DashboardOutlined,
   MessageOutlined,
   SettingOutlined,
+  ToolOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import { Drawer, Menu, Typography } from "antd";
 
@@ -17,7 +19,9 @@ function Sidebar({ open, onClose, isAdmin }) {
     { label: "Dashboard", path: "/", icon: <DashboardOutlined /> },
     { label: "Discussion", path: "/discussion", icon: <MessageOutlined /> },
     { label: "Payment", path: "/payment", icon: <CreditCardOutlined /> },
+    { label: "Maintenance", path: "/maintenance", icon: <ToolOutlined /> },
     { label: "Room Reserving", path: "/rooms", icon: <CalendarOutlined /> },
+    { label: "Profile", path: "/profile", icon: <UserOutlined /> },
   ];
 
   if (isAdmin) {
