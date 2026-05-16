@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import com.community.management.exception.BookingConflictException;
 import com.community.management.exception.InvalidBookingException;
+import com.community.management.exception.InvalidMaintenanceRequestException;
 import com.community.management.exception.UnauthorizedActionException;
 
 /**
@@ -58,6 +59,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BookingConflictException.class)
     public ResponseEntity<ApiResponse> handleBookingConflict(BookingConflictException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ApiResponse(false, ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidMaintenanceRequestException.class)
+    public ResponseEntity<ApiResponse> handleInvalidMaintenanceRequest(InvalidMaintenanceRequestException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ApiResponse(false, ex.getMessage()));
     }
 

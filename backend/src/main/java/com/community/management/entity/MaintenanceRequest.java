@@ -2,6 +2,7 @@ package com.community.management.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 /**
@@ -29,12 +30,13 @@ public class MaintenanceRequest {
     @Column(nullable = false)
     private RequestStatus status = RequestStatus.OPEN;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime submittedAt = LocalDateTime.now();
+    @CreationTimestamp
+    @Column(name = "submitted_at", nullable = false, updatable = false)
+    private LocalDateTime submittedAt;
 
     private LocalDateTime resolvedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "submitted_by", nullable = false)
     private User submittedBy;
 
