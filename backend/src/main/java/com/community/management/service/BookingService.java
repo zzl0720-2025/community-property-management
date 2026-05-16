@@ -13,8 +13,13 @@ import com.community.management.exception.UnauthorizedActionException;
 import com.community.management.repository.BookingRepository;
 import com.community.management.repository.CommonRoomRepository;
 import com.community.management.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,18 +36,24 @@ public class BookingService {
     private final CommonRoomRepository commonRoomRepository;
     private final UserRepository userRepository;
 
-    public List<BookingResponse> getAllBookings() {
-        return bookingRepository.findAll().stream()
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Transactional(readOnly = true)
+    public List<BookingResponse> getAllBookings(Pageable pageable) {
+        return bookingRepository.findAll(pageable).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
-    public List<BookingResponse> getUserBookings(Long userId) {
-        return bookingRepository.findByUserId(userId).stream()
+    @Transactional(readOnly = true)
+    public List<BookingResponse> getUserBookings(Long userId, Pageable pageable) {
+        return bookingRepository.findByUserId(userId, pageable).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public BookingResponse createBooking(BookingRequest request, Long userId) {
         if (!request.getEndTime().isAfter(request.getStartTime())) {
             throw new InvalidBookingException("End time must be after start time");
@@ -50,6 +61,11 @@ public class BookingService {
 
         CommonRoom room = commonRoomRepository.findById(request.getRoomId())
                 .orElseThrow(() -> new ResourceNotFoundException("Room not found: " + request.getRoomId()));
+
+        // Lock the room row so concurrent booking attempts for the same room are
+        // serialized: the second request blocks here until the first transaction
+        // commits, then sees the newly-saved booking during the conflict check.
+        entityManager.lock(room, LockModeType.PESSIMISTIC_WRITE);
 
         List<Booking> conflicts = bookingRepository.findConflicts(
                 request.getRoomId(), request.getStartTime(), request.getEndTime(),
@@ -72,13 +88,30 @@ public class BookingService {
         return toResponse(bookingRepository.save(booking));
     }
 
-    public BookingResponse updateBookingStatus(Long bookingId, BookingStatus status) {
+    @Transactional
+    public BookingResponse updateBookingStatus(Long bookingId, BookingStatus newStatus) {
+        if (newStatus == BookingStatus.CANCELLED || newStatus == BookingStatus.PENDING) {
+            throw new InvalidBookingException(
+                    "Status can only be set to APPROVED or REJECTED through this endpoint");
+        }
+
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found: " + bookingId));
-        booking.setStatus(status);
+
+        BookingStatus current = booking.getStatus();
+        if (current == BookingStatus.CANCELLED) {
+            throw new InvalidBookingException("Cannot change the status of a cancelled booking");
+        }
+        if (current == BookingStatus.REJECTED && newStatus == BookingStatus.APPROVED) {
+            throw new InvalidBookingException(
+                    "Cannot approve a rejected booking; the resident must create a new booking");
+        }
+
+        booking.setStatus(newStatus);
         return toResponse(bookingRepository.save(booking));
     }
 
+    @Transactional
     public void cancelBooking(Long bookingId, Long userId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found: " + bookingId));

@@ -9,6 +9,7 @@ import com.community.management.repository.UserRepository;
 import com.community.management.service.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,13 +38,20 @@ public class BookingController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<BookingResponse>> getAllBookings() {
-        return ResponseEntity.ok(bookingService.getAllBookings());
+    public ResponseEntity<List<BookingResponse>> getAllBookings(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        int safeSize = Math.min(size, 100);
+        return ResponseEntity.ok(bookingService.getAllBookings(PageRequest.of(page, safeSize)));
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<BookingResponse>> getUserBookings(@PathVariable Long userId) {
-        return ResponseEntity.ok(bookingService.getUserBookings(userId));
+    public ResponseEntity<List<BookingResponse>> getUserBookings(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        int safeSize = Math.min(size, 100);
+        return ResponseEntity.ok(bookingService.getUserBookings(userId, PageRequest.of(page, safeSize)));
     }
 
     @PostMapping
