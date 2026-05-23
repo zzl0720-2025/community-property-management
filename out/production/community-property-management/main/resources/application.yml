@@ -5,11 +5,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/community_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
-<<<<<<< HEAD
-    password: root123
-=======
     password: 020606zm   # TODO: replace with your MySQL password
->>>>>>> origin/frontend/pages/ui
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:

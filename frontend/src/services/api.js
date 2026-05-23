@@ -20,13 +20,12 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401: clear stored auth and redirect to login
+// Handle 401: clear token and redirect to login
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && !error.config.url.includes('/auth/')) {
       localStorage.removeItem('token');
-      localStorage.removeItem('user');
       window.location.href = '/login';
     }
     return Promise.reject(error);
