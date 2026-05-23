@@ -5,6 +5,7 @@ import com.community.management.dto.booking.BookingResponse;
 import com.community.management.dto.booking.BookingStatusUpdateRequest;
 import com.community.management.entity.User;
 import com.community.management.exception.ResourceNotFoundException;
+import com.community.management.exception.UnauthorizedActionException;
 import com.community.management.repository.UserRepository;
 import com.community.management.service.BookingService;
 import jakarta.validation.Valid;
@@ -49,7 +50,13 @@ public class BookingController {
     public ResponseEntity<List<BookingResponse>> getUserBookings(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        if (!isAdmin && !resolveUserId(userDetails).equals(userId)) {
+            throw new UnauthorizedActionException("You are not authorized to view these bookings");
+        }
         int safeSize = Math.min(size, 100);
         return ResponseEntity.ok(bookingService.getUserBookings(userId, PageRequest.of(page, safeSize)));
     }
