@@ -58,10 +58,12 @@ public class DataInitializer implements CommandLineRunner {
 
     private void seedRooms() {
         if (commonRoomRepository.count() == 0) {
-            saveRoom("Community Hall", "Large hall for community events and gatherings", 100);
-            saveRoom("Meeting Room A", "Small meeting room for residents and committees", 20);
-            saveRoom("Gym", "Fitness room with exercise equipment", 15);
-            log.info("Sample common rooms seeded");
+            saveRoom("多功能厅", "大型社区活动厅，适合聚会和集体活动", 100);
+            saveRoom("健身房", "配备健身器材的运动室", 15);
+            saveRoom("会议室", "供居民和委员会使用的小型会议室", 20);
+            saveRoom("棋牌室", "供居民休闲娱乐的棋牌活动室", 12);
+            saveRoom("儿童乐园", "儿童游乐区域", 30);
+            log.info("Common rooms seeded");
         }
     }
 

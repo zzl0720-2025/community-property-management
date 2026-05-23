@@ -18,4 +18,10 @@ public class BookingResponse {
     private String notes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // Frontend-facing display fields
+    private String facility;   // same as roomName
+    private String date;       // YYYY-MM-DD from startTime
+    private String time;       // HH:mm-HH:mm from startTime/endTime
+    private String user;       // full name of the booking user
 }

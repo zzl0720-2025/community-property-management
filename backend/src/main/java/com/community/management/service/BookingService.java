@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,8 +60,8 @@ public class BookingService {
             throw new InvalidBookingException("End time must be after start time");
         }
 
-        CommonRoom room = commonRoomRepository.findById(request.getRoomId())
-                .orElseThrow(() -> new ResourceNotFoundException("Room not found: " + request.getRoomId()));
+        CommonRoom room = commonRoomRepository.findByName(request.getRoomName())
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found: " + request.getRoomName()));
 
         // Lock the room row so concurrent booking attempts for the same room are
         // serialized: the second request blocks here until the first transaction
@@ -124,6 +125,8 @@ public class BookingService {
         bookingRepository.save(booking);
     }
 
+    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
+
     private BookingResponse toResponse(Booking booking) {
         BookingResponse response = new BookingResponse();
         response.setId(booking.getId());
@@ -136,6 +139,11 @@ public class BookingService {
         response.setNotes(booking.getNotes());
         response.setCreatedAt(booking.getCreatedAt());
         response.setUpdatedAt(booking.getUpdatedAt());
+        // Frontend display fields
+        response.setFacility(booking.getRoom().getName());
+        response.setDate(booking.getStartTime().toLocalDate().toString());
+        response.setTime(booking.getStartTime().format(TIME_FMT) + "-" + booking.getEndTime().format(TIME_FMT));
+        response.setUser(booking.getUser().getFullName());
         return response;
     }
 }
