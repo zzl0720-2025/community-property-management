@@ -203,14 +203,19 @@ All protected endpoints require `Authorization: Bearer <token>` header.
 | POST   | `/api/posts/{id}/comments`      | Any  | Add comment      |
 | DELETE | `/api/posts/{id}`               | Any  | Delete post      |
 
+### Rooms
+| Method | Endpoint      | Role | Description             |
+|--------|---------------|------|-------------------------|
+| GET    | `/api/rooms`  | Any  | List all bookable rooms |
+
 ### Bookings
-| Method | Endpoint                        | Role  | Description          |
-|--------|---------------------------------|-------|----------------------|
-| GET    | `/api/bookings`                 | ADMIN | List all bookings    |
-| GET    | `/api/bookings/user/{userId}`   | Any   | My bookings          |
-| POST   | `/api/bookings`                 | Any   | Create booking       |
-| PATCH  | `/api/bookings/{id}/status`     | ADMIN | Approve/reject       |
-| DELETE | `/api/bookings/{id}`            | Any   | Cancel booking       |
+| Method | Endpoint                        | Role  | Description       |
+|--------|---------------------------------|-------|-------------------|
+| GET    | `/api/bookings`                 | ADMIN | List all bookings |
+| GET    | `/api/bookings/user/{userId}`   | Any   | My bookings       |
+| POST   | `/api/bookings`                 | Any   | Create booking    |
+| PATCH  | `/api/bookings/{id}/status`     | ADMIN | Approve/reject    |
+| DELETE | `/api/bookings/{id}`            | Any   | Cancel booking    |
 
 ### Maintenance
 | Method | Endpoint                          | Role        | Description       |
