@@ -1,0 +1,9 @@
+{
+  "short_name": "Community",
+  "name": "Community Property Management",
+  "icons": [],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1a1a2e",
+  "background_color": "#ffffff"
+}
