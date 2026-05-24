@@ -26,7 +26,7 @@ public class Announcement {
     private LocalDateTime postedAt = LocalDateTime.now();
 
     // The admin who posted this announcement
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "posted_by", nullable = false)
     private User postedBy;
 }

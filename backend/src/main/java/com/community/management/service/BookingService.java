@@ -69,7 +69,7 @@ public class BookingService {
         entityManager.lock(room, LockModeType.PESSIMISTIC_WRITE);
 
         List<Booking> conflicts = bookingRepository.findConflicts(
-                request.getRoomId(), request.getStartTime(), request.getEndTime(),
+                room.getId(), request.getStartTime(), request.getEndTime(),
                 List.of(BookingStatus.CANCELLED, BookingStatus.REJECTED));
         if (!conflicts.isEmpty()) {
             throw new BookingConflictException("Room is already booked for the requested time slot");

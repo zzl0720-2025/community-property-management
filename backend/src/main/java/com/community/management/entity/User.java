@@ -1,5 +1,6 @@
 package com.community.management.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -24,8 +25,9 @@ public class User {
     @Column(unique = true, nullable = false, length = 100)
     private String email;
 
+    @JsonIgnore
     @Column(nullable = false)
-    private String password;       // stored as BCrypt hash
+    private String password;       // stored as BCrypt hash — never returned in API responses
 
     @Column(nullable = false, length = 100)
     private String fullName;

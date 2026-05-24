@@ -1,7 +1,9 @@
 package com.community.management.controller;
 
+import com.community.management.dto.PaymentCreateRequest;
 import com.community.management.entity.Payment;
 import com.community.management.service.PaymentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,7 +16,7 @@ import java.util.List;
  * No real payment gateway — markAsPaid() simulates a successful transaction.
  *
  * GET    /api/payments/user/{id}  → payment history for user
- * POST   /api/payments            → create a payment record
+ * POST   /api/payments            → create a payment record (ADMIN)
  * PATCH  /api/payments/{id}/pay   → mock: mark as paid
  */
 @RestController
@@ -31,8 +33,8 @@ public class PaymentController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Payment> create(@RequestBody Payment payment) {
-        return ResponseEntity.ok(paymentService.create(payment));
+    public ResponseEntity<Payment> create(@Valid @RequestBody PaymentCreateRequest request) {
+        return ResponseEntity.ok(paymentService.create(request));
     }
 
     @PatchMapping("/{id}/pay")

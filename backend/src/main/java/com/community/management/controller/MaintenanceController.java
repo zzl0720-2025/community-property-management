@@ -2,7 +2,7 @@ package com.community.management.controller;
 
 import com.community.management.dto.maintenance.MaintenanceCreateRequest;
 import com.community.management.dto.maintenance.MaintenanceResponse;
-import com.community.management.entity.MaintenanceRequest.RequestStatus;
+import com.community.management.dto.maintenance.MaintenanceStatusUpdateRequest;
 import com.community.management.entity.User;
 import com.community.management.exception.ResourceNotFoundException;
 import com.community.management.exception.UnauthorizedActionException;
@@ -73,8 +73,8 @@ public class MaintenanceController {
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<MaintenanceResponse> updateStatus(
             @PathVariable Long id,
-            @RequestParam RequestStatus status) {
-        return ResponseEntity.ok(maintenanceService.updateStatus(id, status));
+            @Valid @RequestBody MaintenanceStatusUpdateRequest request) {
+        return ResponseEntity.ok(maintenanceService.updateStatus(id, request.getStatus()));
     }
 
     private Long resolveUserId(UserDetails userDetails) {

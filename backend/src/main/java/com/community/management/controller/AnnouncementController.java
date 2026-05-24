@@ -5,6 +5,8 @@ import com.community.management.service.AnnouncementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,8 +32,10 @@ public class AnnouncementController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Announcement> create(@RequestBody Announcement announcement) {
-        return ResponseEntity.ok(announcementService.create(announcement));
+    public ResponseEntity<Announcement> create(
+            @RequestBody Announcement announcement,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(announcementService.create(announcement, userDetails.getUsername()));
     }
 
     @DeleteMapping("/{id}")

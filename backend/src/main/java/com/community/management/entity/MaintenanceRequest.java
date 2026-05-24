@@ -1,5 +1,7 @@
 package com.community.management.entity;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -41,6 +43,15 @@ public class MaintenanceRequest {
     private User submittedBy;
 
     public enum RequestStatus {
-        OPEN, IN_PROGRESS, RESOLVED, CLOSED
+        OPEN, IN_PROGRESS, RESOLVED, CLOSED;
+
+        @JsonValue
+        public String toLower() { return name().toLowerCase(); }
+
+        @JsonCreator
+        public static RequestStatus fromString(String value) {
+            if (value == null) return null;
+            return RequestStatus.valueOf(value.toUpperCase());
+        }
     }
 }
