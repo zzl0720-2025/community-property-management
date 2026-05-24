@@ -1,41 +1,3 @@
-<<<<<<< HEAD
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import Navbar from './components/Navbar';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-
-function PrivateRoute({ children }) {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
-}
-
-function AppRoutes() {
-  return (
-    <>
-      <Navbar />
-      <Routes>
-        <Route path="/login"    element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={
-          <PrivateRoute><Dashboard /></PrivateRoute>
-        } />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </>
-  );
-}
-
-function App() {
-  return (
-    <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
-    </AuthProvider>
-=======
 import React, { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
@@ -46,14 +8,17 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { Button, Layout, Space, Typography } from "antd";
-import { LogoutOutlined, MenuOutlined } from "@ant-design/icons";
+import { BellOutlined, LogoutOutlined, MenuOutlined } from "@ant-design/icons";
 import LoginPage from "./components/LoginPage";
 import RegisterPage from "./components/RegisterPage";
 import Sidebar from "./components/Sidebar";
 import Admin from "./pages/Admin";
 import Dashboard from "./pages/Dashboard";
 import Discussion from "./pages/Discussion";
+import Maintenance from "./pages/Maintenance";
+import Notifications from "./pages/Notifications";
 import Payment from "./pages/Payment";
+import Profile from "./pages/Profile";
 import RoomReserving from "./pages/RoomReserving";
 
 const { Header, Content } = Layout;
@@ -64,7 +29,6 @@ function App() {
     <Router>
       <AppContent />
     </Router>
->>>>>>> origin/frontend/pages/ui
   );
 }
 
@@ -116,9 +80,18 @@ function AppContent() {
           </Typography.Title>
         </Space>
         {authed ? (
-          <Button type="text" icon={<LogoutOutlined />} onClick={handleLogout}>
-            Log Out
-          </Button>
+          <Space size={8}>
+            <Button
+              type="text"
+              shape="circle"
+              icon={<BellOutlined />}
+              onClick={() => navigate("/notifications")}
+              aria-label="Notifications"
+            />
+            <Button type="text" icon={<LogoutOutlined />} onClick={handleLogout}>
+              Log Out
+            </Button>
+          </Space>
         ) : null}
       </Header>
 
@@ -170,6 +143,30 @@ function AppContent() {
               element={
                 <ProtectedRoute authed={authed}>
                   <Payment />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/maintenance"
+              element={
+                <ProtectedRoute authed={authed}>
+                  <Maintenance />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute authed={authed}>
+                  <Notifications />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute authed={authed}>
+                  <Profile />
                 </ProtectedRoute>
               }
             />

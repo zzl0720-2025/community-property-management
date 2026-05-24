@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Card, Typography, List, Avatar, Button, Input, Modal, Form, message, Space, Tag,
-  Popconfirm
 } from 'antd';
 import {
   UserOutlined, PlusOutlined, MessageOutlined, LikeOutlined, LikeFilled
@@ -11,44 +10,46 @@ const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
 
 function Discussion() {
-  // 每个帖子包含 id, title, content, author, time, replies (数组)
-  // 每个回复包含 id, author, content, time, likes, liked (当前用户是否已点赞)
+  // Each post has id, title, content, author, time, replies (array)
+  // Each reply has id, author, content, time, likes, liked (whether the current user liked it)
   const [posts, setPosts] = useState([
     {
       id: 1,
-      title: '小区即将举办广场舞活动',
-      content: '时间暂定2026-05-10，可参加人数20',
-      author: '物业A',
+      title: 'Upcoming community square-dance event',
+      content: 'Tentative date: 2026-05-10. Capacity: 20.',
+      author: 'Property Manager A',
       time: '2026-05-07',
       replies: [
-        { id: 101, author: '业主1', content: '急急急', time: '2025-05-07 14:30', likes: 5, liked: false },
-        { id: 102, author: '业主2', content: '急急急急急急', time: '2025-05-07 16:20', likes: 3, liked: false },
+        { id: 101, author: 'Resident 1', content: 'Sign me up!', time: '2025-05-07 14:30', likes: 5, liked: false },
+        { id: 102, author: 'Resident 2', content: 'Count me in too!', time: '2025-05-07 16:20', likes: 3, liked: false },
       ],
     },
     {
       id: 2,
-      title: 'title2',
-      content: 'content2',
-      author: 'proprietor2',
+      title: 'Parking gate access reminder',
+      content: 'Please keep your parking card with you when entering the garage after 10 PM.',
+      author: 'Community Management',
       time: '2025-05-07',
       replies: [
-        { id: 201, author: 'proprietor3', content: 'comment1', time: '2025-05-07 10:15', likes: 2, liked: false },
+        { id: 201, author: 'Resident 3', content: 'Thanks for the reminder.', time: '2025-05-07 10:15', likes: 2, liked: false },
       ],
     },
     {
       id: 3,
-      title: 'title3',
-      content: 'content3',
-      author: 'proprietor3',
+      title: 'Package room pickup hours',
+      content: 'Has anyone confirmed whether weekend package pickup is available after 6 PM?',
+      author: 'Resident 4',
       time: '2025-05-07',
       replies: [],
     },
   ]);
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [postModalVisible, setPostModalVisible] = useState(false);
   const [currentPost, setCurrentPost] = useState(null);
 
   const [replyForm] = Form.useForm();
+  const [postForm] = Form.useForm();
 
   const updatePostReplies = (postId, updater) => {
     setPosts(prevPosts => prevPosts.map(post =>
@@ -67,27 +68,52 @@ function Discussion() {
     setCurrentPost(null);
   };
 
+  const openPostModal = () => {
+    setPostModalVisible(true);
+    postForm.resetFields();
+  };
+
+  const closePostModal = () => {
+    setPostModalVisible(false);
+    postForm.resetFields();
+  };
+
+  const handleCreatePost = (values) => {
+    const newPost = {
+      id: Date.now(),
+      title: values.title,
+      content: values.content,
+      author: 'Current User',
+      time: new Date().toLocaleDateString(),
+      replies: [],
+    };
+
+    setPosts(prevPosts => [newPost, ...prevPosts]);
+    message.success('Discussion posted');
+    closePostModal();
+  };
+
   const handleAddReply = (values) => {
     if (!currentPost) return;
     const newReply = {
-      id: Date.now(), // 临时ID，实际应由后端生成
-      author: '当前用户', // TODO: 从全局认证状态获取真实用户名
+      id: Date.now(),
+      author: 'Current User',
       content: values.replyContent,
       time: new Date().toLocaleString(),
       likes: 0,
       liked: false,
     };
     updatePostReplies(currentPost.id, (replies) => [...replies, newReply]);
-    message.success('回复成功');
+    message.success('Reply posted');
     replyForm.resetFields();
-    // 更新当前显示的帖子对象，以便模态框内的回复列表实时刷新
+    // Update the currently displayed post so the modal's reply list refreshes immediately
     setCurrentPost(prev => ({
       ...prev,
       replies: [...prev.replies, newReply]
     }));
   };
 
-  // 点赞回复
+  // Like a reply
   const handleLikeReply = (postId, replyId) => {
     updatePostReplies(postId, (replies) =>
       replies.map(reply =>
@@ -100,7 +126,7 @@ function Discussion() {
           : reply
       )
     );
-    // 同步更新当前显示的帖子对象
+    // Sync the currently displayed post object
     if (currentPost && currentPost.id === postId) {
       setCurrentPost(prev => ({
         ...prev,
@@ -142,16 +168,18 @@ function Discussion() {
   return (
     <div style={styles.page}>
       <Card bordered={false} style={styles.card}>
-        {/* 头部 */}
+        {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <div>
-            <Title level={2} style={{ marginBottom: 0 }}>社区讨论区</Title>
-            <Paragraph type="secondary">分享生活，共建和谐社区</Paragraph>
+            <Title level={2} style={{ marginBottom: 0 }}>Community Discussion</Title>
+            <Paragraph type="secondary">Share life and build a friendly community</Paragraph>
           </div>
-          {/* 发布新帖按钮*/}
+          <Button type="primary" icon={<PlusOutlined />} onClick={openPostModal}>
+            Post Discussion
+          </Button>
         </div>
 
-        {/* 帖子列表 */}
+        {/* Post list */}
         <List
           itemLayout="vertical"
           dataSource={posts}
@@ -160,25 +188,56 @@ function Discussion() {
               key={post.id}
               actions={[
                 <Space key="reply" onClick={() => openReplyModal(post)} style={{ cursor: 'pointer' }}>
-                  <MessageOutlined /> {post.replies.length} 回复
+                  <MessageOutlined /> {post.replies.length} replies
                 </Space>,
                 <span key="time">{post.time}</span>,
               ]}
-              extra={post.replies.length > 0 ? <Tag color="blue">热门</Tag> : null}
+              extra={post.replies.length > 0 ? <Tag color="blue">Hot</Tag> : null}
             >
               <List.Item.Meta
                 avatar={<Avatar icon={<UserOutlined />} />}
                 title={<Text strong>{post.title}</Text>}
-                description={`作者：${post.author}`}
+                description={`Author: ${post.author}`}
               />
               {post.content}
             </List.Item>
           )}
         />
 
-        {/* 回复模态框 */}
+        {/* New post modal */}
         <Modal
-          title={`回复 · ${currentPost?.title || ''}`}
+          title="Post Discussion"
+          open={postModalVisible}
+          onCancel={closePostModal}
+          footer={null}
+          width={600}
+        >
+          <Form form={postForm} onFinish={handleCreatePost} layout="vertical">
+            <Form.Item
+              name="title"
+              label="Title"
+              rules={[{ required: true, message: 'Please enter a title' }]}
+            >
+              <Input placeholder="Discussion title" />
+            </Form.Item>
+            <Form.Item
+              name="content"
+              label="Content"
+              rules={[{ required: true, message: 'Please enter discussion content' }]}
+            >
+              <TextArea rows={5} placeholder="Share your message with the community..." />
+            </Form.Item>
+            <Form.Item style={{ marginBottom: 0 }}>
+              <Button type="primary" htmlType="submit">
+                Post Discussion
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
+
+        {/* Reply modal */}
+        <Modal
+          title={`Reply - ${currentPost?.title || ''}`}
           open={modalVisible}
           onCancel={closeModal}
           footer={null}
@@ -186,36 +245,36 @@ function Discussion() {
         >
           {currentPost && (
             <>
-              {/* 原帖内容摘要 */}
+              {/* Original post summary */}
               <Card size="small" style={{ marginBottom: 16, backgroundColor: '#f5f5f5' }}>
                 <Paragraph>
-                  <Text strong>{currentPost.author}</Text> 发表于 {currentPost.time}
+                  <Text strong>{currentPost.author}</Text> posted on {currentPost.time}
                 </Paragraph>
                 <Paragraph>{currentPost.content}</Paragraph>
               </Card>
 
-              {/* 回复列表 */}
+              {/* Reply list */}
               <div style={{ marginBottom: 24 }}>
-                <Text strong style={{ fontSize: 16 }}>全部回复 ({currentPost.replies.length})</Text>
+                <Text strong style={{ fontSize: 16 }}>All replies ({currentPost.replies.length})</Text>
                 <List
                   dataSource={currentPost.replies}
                   renderItem={(reply) => renderReplyItem(reply, currentPost.id)}
-                  locale={{ emptyText: '暂无回复' }}
+                  locale={{ emptyText: 'No replies yet' }}
                   style={{ marginTop: 12 }}
                 />
               </div>
 
-              {/* 添加新回复的表单 */}
+              {/* New reply form */}
               <Form form={replyForm} onFinish={handleAddReply} layout="vertical">
                 <Form.Item
                   name="replyContent"
-                  label="发表回复"
-                  rules={[{ required: true, message: '请输入回复内容' }]}
+                  label="Post a reply"
+                  rules={[{ required: true, message: 'Please enter your reply' }]}
                 >
-                  <TextArea rows={3} placeholder="写下你的回复..." />
+                  <TextArea rows={3} placeholder="Write your reply..." />
                 </Form.Item>
                 <Form.Item>
-                  <Button type="primary" htmlType="submit">提交回复</Button>
+                  <Button type="primary" htmlType="submit">Submit reply</Button>
                 </Form.Item>
               </Form>
             </>

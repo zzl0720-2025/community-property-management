@@ -12,6 +12,7 @@ Built with **Spring Boot + MySQL** (backend) and **React** (frontend).
 - [Prerequisites](#prerequisites)
 - [Running Locally](#running-locally)
 - [API Reference](#api-reference)
+- [Frontend API Response Contract](#frontend-api-response-contract)
 - [Next Steps](#next-steps)
 - [Team Task Breakdown](#team-task-breakdown)
 
@@ -34,31 +35,31 @@ Built with **Spring Boot + MySQL** (backend) and **React** (frontend).
 
 ```
 community-property-management/
-├── backend/                          # Spring Boot application
-│   ├── pom.xml
-│   └── src/main/
-│       ├── java/com/community/management/
-│       │   ├── CommunityManagementApplication.java
-│       │   ├── config/               # SecurityConfig (JWT + CORS)
-│       │   ├── controller/           # REST API controllers (7 modules)
-│       │   ├── service/              # Business logic interfaces + impls
-│       │   ├── repository/           # Spring Data JPA repositories
-│       │   ├── entity/               # JPA entities (8 tables)
-│       │   ├── dto/                  # Request/response objects
-│       │   ├── security/             # JwtUtil, JwtFilter, UserDetailsService
-│       │   └── exception/            # Global error handling
-│       └── resources/
-│           └── application.yml       # Database + JWT config
-│
-└── frontend/                         # React application
-    ├── package.json
-    └── src/
-        ├── App.js                    # Root router + PrivateRoute guard
-        ├── index.js
-        ├── components/               # Reusable components (Navbar, etc.)
-        ├── pages/                    # Page components (Login, Register, Dashboard)
-        └── services/
-            └── api.js                # Axios instance + all API calls
+|-- backend/                          # Spring Boot application
+|   |-- pom.xml
+|   `-- src/main/
+|       |-- java/com/community/management/
+|       |   |-- CommunityManagementApplication.java
+|       |   |-- config/               # SecurityConfig (JWT + CORS)
+|       |   |-- controller/           # REST API controllers (7 modules)
+|       |   |-- service/              # Business logic interfaces + impls
+|       |   |-- repository/           # Spring Data JPA repositories
+|       |   |-- entity/               # JPA entities (8 tables)
+|       |   |-- dto/                  # Request/response objects
+|       |   |-- security/             # JwtUtil, JwtFilter, UserDetailsService
+|       |   `-- exception/            # Global error handling
+|       `-- resources/
+|           `-- application.yml       # Database + JWT config
+|
+`-- frontend/                         # React application
+    |-- package.json
+    `-- src/
+        |-- App.js                    # Root router + PrivateRoute guard
+        |-- index.js
+        |-- components/               # Reusable components (Navbar, etc.)
+        |-- pages/                    # Page components (Login, Register, Dashboard)
+        `-- services/
+            `-- api.js                # Axios instance + all API calls
 ```
 
 ---
@@ -79,7 +80,7 @@ Make sure the following are installed on your machine:
 
 ## Running Locally
 
-### Step 1 — Set up the MySQL database
+### Step 1 - Set up the MySQL database
 
 ```bash
 # Log in to MySQL
@@ -90,7 +91,7 @@ CREATE DATABASE community_db;
 EXIT;
 ```
 
-### Step 2 — Configure the backend
+### Step 2 - Configure the backend
 
 Open `backend/src/main/resources/application.yml` and update:
 
@@ -102,7 +103,7 @@ spring:
     password: YOUR_MYSQL_PASSWORD    # <-- change this
 ```
 
-### Step 3 — Run the backend
+### Step 3 - Run the backend
 
 ```bash
 cd backend
@@ -113,7 +114,7 @@ The API will start at `http://localhost:8080`.
 
 > On first run, Hibernate auto-creates all tables (`ddl-auto: update`).
 
-### Step 4 — Seed the roles table
+### Step 4 - Seed the roles table
 
 After the first run, insert the required roles:
 
@@ -126,7 +127,7 @@ INSERT INTO roles (name) VALUES
   ('ROLE_STAFF');
 ```
 
-### Step 5 — Run the frontend
+### Step 5 - Run the frontend
 
 ```bash
 cd frontend
@@ -136,7 +137,7 @@ npm start
 
 The app will open at `http://localhost:3000`.
 
-### Step 6 — Verify the setup
+### Step 6 - Verify the setup
 
 Test the login endpoint using curl or Postman:
 
@@ -232,6 +233,180 @@ All protected endpoints require `Authorization: Bearer <token>` header.
 | POST   | `/api/payments`               | ADMIN | Create payment record|
 | PATCH  | `/api/payments/{id}/pay`      | Any   | Mock: mark as paid   |
 
+## Frontend API Response Contract
+
+The React app reads the following fields from backend responses. Keep these names stable unless the frontend adapters are updated. For now, list endpoints should return a JSON array. The admin page can also tolerate `{ "content": [] }`, `{ "items": [] }`, or `{ "data": [] }`, but `GET /api/announcements` should return an array because the dashboard reads it directly.
+
+All error responses that should be shown in the UI should include:
+
+```json
+{
+  "message": "Human-readable error message"
+}
+```
+
+A `401 Unauthorized` response logs the user out and redirects to `/login`.
+
+### Auth responses
+
+`POST /api/auth/login` should return:
+
+```json
+{
+  "token": "jwt-token",
+  "email": "admin@test.com",
+  "fullName": "Admin User",
+  "role": "ROLE_ADMIN"
+}
+```
+
+The frontend accepts `role`, `roles`, or `authorities` in the response body, or inside the JWT payload. Any value containing `admin` is treated as an admin account. If no admin role is found, the user is treated as a resident.
+
+`POST /api/auth/register` only needs to return any `2xx` response. Returning the created user object is also fine.
+
+### Shared user shape
+
+Used by `GET /api/users`, `postedBy`, booking `user`, and maintenance `user` fields:
+
+```json
+{
+  "id": 1,
+  "fullName": "Resident User",
+  "email": "resident@test.com",
+  "phone": "1234567890",
+  "role": "ROLE_RESIDENT"
+}
+```
+
+The admin page can also read `name`, `username`, `accountType`, `type`, `roles`, or `authorities`, but `id`, `fullName`, `email`, `phone`, and `role` are the preferred fields.
+
+### Announcements
+
+`GET /api/announcements` and `POST /api/announcements` should return announcement objects:
+
+```json
+{
+  "id": 1,
+  "title": "Water maintenance notice",
+  "content": "Water will be unavailable from 10:00 to 12:00.",
+  "postedBy": {
+    "id": 1,
+    "fullName": "Community Management"
+  },
+  "postedAt": "2026-05-08T14:30:00Z"
+}
+```
+
+`GET /api/announcements` should return `Announcement[]`. `DELETE /api/announcements/{id}` can return `204 No Content`; the frontend does not require a response body.
+
+### Discussion posts and comments
+
+`GET /api/posts`, `GET /api/posts/{id}`, `POST /api/posts`, and `POST /api/posts/{id}/comments` should use these shapes when the discussion page is connected to the backend:
+
+```json
+{
+  "id": 1,
+  "title": "Community event",
+  "content": "Event details",
+  "author": "Property Manager A",
+  "time": "2026-05-08 14:30",
+  "replies": [
+    {
+      "id": 101,
+      "author": "Resident User",
+      "content": "Sign me up.",
+      "time": "2026-05-08 15:00",
+      "likes": 0,
+      "liked": false
+    }
+  ]
+}
+```
+
+If the backend uses `createdAt`, `comments`, or nested user objects instead of `time`, `replies`, and `author`, add a frontend adapter before replacing the current mock state.
+
+### Bookings
+
+`GET /api/bookings`, `GET /api/bookings/user/{userId}`, `POST /api/bookings`, and `PATCH /api/bookings/{id}/status` should return booking objects:
+
+```json
+{
+  "id": 1,
+  "facility": "Multipurpose Hall",
+  "date": "2026-05-10",
+  "time": "14:00-16:00",
+  "user": {
+    "id": 2,
+    "fullName": "Resident User",
+    "email": "resident@test.com"
+  },
+  "status": "pending"
+}
+```
+
+Allowed booking statuses used by the frontend: `pending`, `approved`, `rejected`, `cancelled`. The status update request body sent by the frontend is:
+
+```json
+{
+  "status": "approved"
+}
+```
+
+### Maintenance requests
+
+`GET /api/maintenance`, `GET /api/maintenance/user/{userId}`, `POST /api/maintenance`, and `PATCH /api/maintenance/{id}/status` should return maintenance request objects:
+
+```json
+{
+  "id": 1,
+  "title": "Leaking pipe",
+  "description": "Pipe is leaking in the hallway.",
+  "location": "Building A, Floor 3",
+  "user": {
+    "id": 2,
+    "fullName": "Resident User",
+    "email": "resident@test.com"
+  },
+  "status": "pending"
+}
+```
+
+The admin page can display `title`, `issue`, or `description` as the request title. Allowed maintenance statuses used by the frontend: `pending`, `in_progress`, `resolved`, `closed`. The status update request body sent by the frontend is:
+
+```json
+{
+  "status": "in_progress"
+}
+```
+
+### Payments
+
+`GET /api/payments/user/{userId}`, `POST /api/payments`, and `PATCH /api/payments/{id}/pay` should return payment objects:
+
+```json
+{
+  "id": 1,
+  "userId": 2,
+  "type": "Property Management Fee",
+  "amount": 320.0,
+  "dueDate": "2026-05-31",
+  "status": "unpaid",
+  "paidAt": null
+}
+```
+
+Allowed payment statuses used by the frontend: `unpaid`, `paid`. The admin payment creation request body sent by the frontend is:
+
+```json
+{
+  "userId": 2,
+  "type": "Property Management Fee",
+  "amount": 320.0,
+  "dueDate": "2026-05-31",
+  "status": "unpaid"
+}
+```
+
 ---
 
 ## Next Steps
@@ -241,7 +416,7 @@ Each item references the relevant file(s) to edit.
 
 ### Backend
 
-#### 1. Security — extract current user from JWT
+#### 1. Security - extract current user from JWT
 Currently, controllers accept `userId` as a path param, which is insecure.
 The logged-in user should be resolved from the JWT automatically.
 

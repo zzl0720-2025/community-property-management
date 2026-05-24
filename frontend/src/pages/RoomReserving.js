@@ -10,11 +10,11 @@ const { Title, Paragraph, Text } = Typography;
 const { Option } = Select;
 
 function RoomReserving() {
-  // 预约记录（模拟）
+  // Reservation records (mock data — replace with API calls for real integration)
   const [reservations, setReservations] = useState([
-    { id: 1, facility: '多功能厅', date: '2025-05-10', time: '14:00-16:00', user: '张三', status: 'approved' },
-    { id: 2, facility: '健身房', date: '2025-05-11', time: '09:00-10:00', user: '李四', status: 'pending' },
-    { id: 3, facility: '会议室', date: '2025-05-12', time: '10:00-12:00', user: '王五', status: 'approved' },
+    { id: 1, facility: 'Multipurpose Hall', date: '2025-05-10', time: '14:00-16:00', user: 'Alice', status: 'approved' },
+    { id: 2, facility: 'Gym', date: '2025-05-11', time: '09:00-10:00', user: 'Bob', status: 'pending' },
+    { id: 3, facility: 'Meeting Room', date: '2025-05-12', time: '10:00-12:00', user: 'Charlie', status: 'approved' },
   ]);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -23,18 +23,18 @@ function RoomReserving() {
   const [isFacilityLocked, setIsFacilityLocked] = useState(false);
   const [lockedFacility, setLockedFacility] = useState('');
 
-  // 可预约设施列表，改为从后端读取
-  const facilities = ['多功能厅', '健身房', '会议室', '棋牌室', '儿童乐园'];
+  // Available facilities; should later be fetched from the backend
+  const facilities = ['Multipurpose Hall', 'Gym', 'Meeting Room', 'Game Room', "Children's Playground"];
 
-  // 打开预约弹窗
+  // Open the reservation modal
   const openModal = (facilityName = null, lock = false) => {
     if (lock && facilityName) {
-      // 快速预约
+      // Quick reservation
       setIsFacilityLocked(true);
       setLockedFacility(facilityName);
       form.setFieldsValue({ facility: facilityName });
     } else {
-      // 立即预约
+      // Standard reservation
       setIsFacilityLocked(false);
       setLockedFacility('');
       form.setFieldsValue({ facility: undefined });
@@ -49,45 +49,45 @@ function RoomReserving() {
     form.resetFields();
   };
 
-  // 提交预约申请
+  // Submit a reservation request
   const handleReserve = (values) => {
     const newReservation = {
       id: reservations.length + 1,
       facility: values.facility,
       date: values.date.format('YYYY-MM-DD'),
       time: `${values.time.format('HH:mm')}-${values.time.add(1, 'hour').format('HH:mm')}`,
-      user: '当前用户', // TODO: 替换为实际登录用户
+      user: 'Current User', // TODO: replace with the logged-in user
       status: 'pending',
     };
     setReservations([newReservation, ...reservations]);
-    message.success('预约申请已提交，等待物业审核');
+    message.success('Reservation submitted. Awaiting management approval.');
     closeModal();
   };
 
   return (
     <div style={styles.page}>
       <Card bordered={false} style={styles.card}>
-        {/* 头部 */}
+        {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <div>
-            <Title level={2}>设施预约</Title>
-            <Paragraph type="secondary">提前预订社区公共设施</Paragraph>
+            <Title level={2}>Facility Reservation</Title>
+            <Paragraph type="secondary">Book community facilities in advance</Paragraph>
           </div>
           <Button type="primary" icon={<CalendarOutlined />} onClick={() => openModal()}>
-            立即预约
+            Reserve Now
           </Button>
         </div>
 
-        {/* 设施卡片列表 */}
+        {/* Facility cards */}
         <Row gutter={[16, 16]}>
           {facilities.map(facility => (
             <Col span={12} key={facility}>
-              <Card size="small" title={facility} extra={<Tag color="blue">可预约</Tag>}>
+              <Card size="small" title={facility} extra={<Tag color="blue">Available</Tag>}>
                 <Space direction="vertical">
-                  <Text><UserOutlined /> 今日剩余时段：10:00-12:00, 14:00-17:00</Text>
-                  {/* 快速预约按钮 */}
+                  <Text><UserOutlined /> Today's remaining slots: 10:00-12:00, 14:00-17:00</Text>
+                  {/* Quick reserve button */}
                   <Button type="link" onClick={() => openModal(facility, true)}>
-                    快速预约
+                    Quick Reserve
                   </Button>
                 </Space>
               </Card>
@@ -95,29 +95,29 @@ function RoomReserving() {
           ))}
         </Row>
 
-        {/* 我的预约记录 */}
-        <Title level={4} style={{ marginTop: 32, marginBottom: 16 }}>我的预约记录</Title>
+        {/* My reservations */}
+        <Title level={4} style={{ marginTop: 32, marginBottom: 16 }}>My Reservations</Title>
         <List
           dataSource={reservations}
           renderItem={(item) => (
             <List.Item
               actions={[
                 <Tag color={item.status === 'approved' ? 'green' : 'orange'}>
-                  {item.status === 'approved' ? '已通过' : '审核中'}
+                  {item.status === 'approved' ? 'Approved' : 'Pending'}
                 </Tag>
               ]}
             >
               <List.Item.Meta
-                title={`${item.facility} · ${item.date}`}
+                title={`${item.facility} - ${item.date}`}
                 description={<Space><ClockCircleOutlined />{item.time}<UserOutlined />{item.user}</Space>}
               />
             </List.Item>
           )}
         />
 
-        {/* 预约弹窗 */}
+        {/* Reservation modal */}
         <Modal
-          title="预约设施"
+          title="Reserve Facility"
           open={isModalVisible}
           onCancel={closeModal}
           footer={null}
@@ -126,13 +126,13 @@ function RoomReserving() {
           <Form form={form} onFinish={handleReserve} layout="vertical">
             <Form.Item
               name="facility"
-              label="选择设施"
-              rules={[{ required: true, message: '请选择设施' }]}
+              label="Select facility"
+              rules={[{ required: true, message: 'Please select a facility' }]}
             >
               <Select
-                placeholder="请选择设施"
-                allowClear={!isFacilityLocked}  // 锁定时不允许清空
-                disabled={isFacilityLocked}     // 锁定时不可编辑
+                placeholder="Please select a facility"
+                allowClear={!isFacilityLocked}  // Disable clearing when locked
+                disabled={isFacilityLocked}     // Read-only when locked
               >
                 {facilities.map(f => (
                   <Option key={f} value={f}>{f}</Option>
@@ -142,22 +142,22 @@ function RoomReserving() {
 
             <Form.Item
               name="date"
-              label="预约日期"
-              rules={[{ required: true, message: '请选择日期' }]}
+              label="Reservation date"
+              rules={[{ required: true, message: 'Please select a date' }]}
             >
               <DatePicker style={{ width: '100%' }} />
             </Form.Item>
 
             <Form.Item
               name="time"
-              label="开始时间"
-              rules={[{ required: true, message: '请选择开始时间' }]}
+              label="Start time"
+              rules={[{ required: true, message: 'Please select a start time' }]}
             >
               <TimePicker format="HH:mm" minuteStep={30} style={{ width: '100%' }} />
             </Form.Item>
 
             <Form.Item>
-              <Button type="primary" htmlType="submit">提交预约</Button>
+              <Button type="primary" htmlType="submit">Submit reservation</Button>
             </Form.Item>
           </Form>
         </Modal>
